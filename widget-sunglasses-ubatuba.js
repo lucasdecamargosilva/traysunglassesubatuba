@@ -1028,17 +1028,21 @@
         function getInstallment() {
             var priceNum = _getLdPrice() || _priceToNum(getMainPrice());
             if (!priceNum || priceNum <= 0) return '';
-            var els = document.querySelectorAll('.product-installments, .txt-corparcelas, [class*="parcela"]');
+            // Candidatos = elementos de parcela + o PAI de cada .txt-cadaparcelas. Na Tray
+            // o "3x" (.txt-corparcelas) e o "R$ 24,00" (.txt-cadaparcelas) ficam em spans
+            // IRMÃOS; só o span-pai tem o texto completo "3x de R$ 24,00 Sem juros". Sem
+            // isso, produtos com parcela quebrada (ex.: kit 2 em 1) não mostravam nada.
+            var cand = [];
+            document.querySelectorAll('.product-installments, .txt-corparcelas, [class*="parcela"]').forEach(function (el) { cand.push(el.textContent || ''); });
+            document.querySelectorAll('.txt-cadaparcelas').forEach(function (el) { if (el.parentElement) cand.push(el.parentElement.textContent || ''); });
             var tol = Math.max(0.5, priceNum * 0.02); // tolerância p/ arredondamento das parcelas
-            var fallback = '';
-            for (var i = 0; i < els.length; i++) {
-                var t = (els[i].textContent || '').replace(/\s+/g, ' ').trim();
+            for (var i = 0; i < cand.length; i++) {
+                var t = cand[i].replace(/\s+/g, ' ').trim();
                 var m = t.match(/(\d+)\s*x\s*(?:de\s*)?R?\$?\s*([\d.,]+)/i);
                 if (!m) continue;
                 var n = parseInt(m[1], 10), v = _priceToNum(m[2]);
                 if (!n || !v) continue;
                 var clean = t.replace(/^(ou|em at[ée])\s*/i, '').replace(/(sem juros|com juros).*/i, '$1').trim();
-                if (!fallback) fallback = clean;
                 if (Math.abs(n * v - priceNum) <= tol) return clean; // total casa com o preço -> essa é a certa
             }
             // nenhuma parcela bate com o preço: melhor não mostrar do que mostrar errada
