@@ -6,6 +6,10 @@ Widget do Provou Levou preparado para a loja Tray `927097`.
 
 `widget-sunglasses-ubatuba.js`
 
+URL publicada:
+
+`https://lucasdecamargosilva.github.io/traysunglassesubatuba/widget-sunglasses-ubatuba.js`
+
 O widget foi adaptado ao tema **Sunglasses Theme 1.0.2** e reconhece:
 
 - páginas de produto Tray;
@@ -23,4 +27,8 @@ O widget foi adaptado ao tema **Sunglasses Theme 1.0.2** e reconhece:
 - Logo: imagem oficial hospedada na CDN da Tray
 - Limite: `https://n8n.segredosdodrop.com/webhook/sunglassesubatuba-check-limit`
 
-Antes de publicar, cadastre a chave do widget na base do Provou Levou e ative o workflow `sunglassesubatuba-check-limit`. Depois hospede o JS e injete a URL resultante em **Minha Loja > Design da Loja > Incluir código HTML** ou pela API de scripts da Tray.
+O cadastro no Provou Levou e o workflow `sunglassesubatuba-check-limit` foram provisionados em 04/09/2026. Para instalar manualmente no tema ou no GTM, use:
+
+```html
+<script src="https://lucasdecamargosilva.github.io/traysunglassesubatuba/widget-sunglasses-ubatuba.js" defer></script>
+```
