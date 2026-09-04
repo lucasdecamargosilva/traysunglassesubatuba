@@ -1048,6 +1048,61 @@
             // nenhuma parcela bate com o preço: melhor não mostrar do que mostrar errada
             return '';
         }
+
+        // ── Detecção de rosto: escolhe, entre as fotos do produto, a que mostra um
+        //    ROSTO (modelo usando o óculos) como referência principal pro gerador.
+        //    FaceDetector nativo (Chromium) primeiro; MediaPipe via CDN como fallback.
+        //    Se nada rodar (CSP/sem suporte), devolve a ordem original — sem regressão.
+        var _faceDet = null, _faceDetTried = false;
+        async function getFaceDetector() {
+            if (_faceDetTried) return _faceDet;
+            _faceDetTried = true;
+            try {
+                if ('FaceDetector' in window) { _faceDet = { native: new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 }) }; return _faceDet; }
+            } catch (e) {}
+            try {
+                var vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs');
+                var fileset = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm');
+                _faceDet = { mp: await vision.FaceDetector.createFromOptions(fileset, {
+                    baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite' },
+                    runningMode: 'IMAGE'
+                }) };
+            } catch (e) { _faceDet = null; }
+            return _faceDet;
+        }
+        function _loadCorsImg(url) {
+            return new Promise(function (resolve) {
+                var img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function () { resolve(img); };
+                img.onerror = function () { resolve(null); };
+                img.src = url;
+            });
+        }
+        async function _imgHasFace(det, img) {
+            try {
+                if (det.native) { var f = await det.native.detect(img); return !!(f && f.length); }
+                if (det.mp) { var r = det.mp.detect(img); return !!(r && r.detections && r.detections.length); }
+            } catch (e) {}
+            return false;
+        }
+        // Move a 1ª foto com rosto pra frente (vira o product_image principal do gerador).
+        async function reorderFacePhotoFirst(urls) {
+            try {
+                if (!urls || urls.length < 2) return urls;
+                var det = await getFaceDetector();
+                if (!det) return urls;
+                for (var i = 0; i < urls.length; i++) {
+                    var img = await _loadCorsImg(urls[i]);
+                    if (img && await _imgHasFace(det, img)) {
+                        if (i > 0) { urls.unshift(urls.splice(i, 1)[0]); }
+                        try { console.log('[PL Sunglasses Ubatuba] foto no rosto priorizada como referência'); } catch (e) {}
+                        return urls;
+                    }
+                }
+            } catch (e) {}
+            return urls;
+        }
         // Botão nativo de compra da loja (Tray) — submit do form_comprar.
         function findStoreBuyBtn() {
             return document.querySelector('#button-buy, .buy-button, .botao-comprar, .product-buy-button, [name="comprar"]');
@@ -1688,6 +1743,8 @@
                     });
                 } catch (_) {}
                 allProdImgs = allProdImgs.slice(0, 4);
+                // Prioriza uma foto com rosto (modelo usando o óculos) como referência principal.
+                allProdImgs = await reorderFacePhotoFirst(allProdImgs);
                 console.log('[PL Sunglasses Ubatuba] Enviando', allProdImgs.length, 'fotos do produto');
                 for (var _pi = 0; _pi < allProdImgs.length; _pi++) {
                     try {
