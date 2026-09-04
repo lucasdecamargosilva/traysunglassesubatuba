@@ -542,7 +542,7 @@
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .q-loading-t1 {
-            font-family: var(--font-display); font-size: 18px; letter-spacing: 4px;
+            font-family: var(--font-display); font-size: 13px; letter-spacing: 2.5px;
             text-transform: uppercase; color: var(--c-ink);
             animation: q-alt-show 3.6s ease-in-out infinite;
         }
@@ -551,10 +551,10 @@
             text-decoration: none; opacity: 0;
         }
         .q-loading-t2 span {
-            font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+            font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
             color: var(--c-muted); font-family: var(--font-body);
         }
-        .q-loading-t2 img { height: 26px; width: auto; opacity: 0.7; }
+        .q-loading-t2 img { height: 17px; width: auto; opacity: 0.7; }
         .q-loading-bar { height: 3px; background: var(--c-line); width: 100%; position: relative; overflow: hidden; border-radius: 2px; }
         .q-loading-bar > div {
             position: absolute; top: 0; left: 0; height: 100%; width: 100%;
@@ -1156,7 +1156,9 @@
         relatedGrid.id = 'q-related-grid';
         relatedSection.appendChild(relatedH4);
         relatedSection.appendChild(relatedGrid);
-        resultActCol.appendChild(relatedSection);
+        // "Veja também" removido do resultado a pedido do lojista: não anexamos a
+        // seção ao DOM. loadRelatedProducts() já sai cedo quando não encontra os elementos.
+        // resultActCol.appendChild(relatedSection);
 
         stepResult.appendChild(resultImgCol);
         stepResult.appendChild(resultActCol);
