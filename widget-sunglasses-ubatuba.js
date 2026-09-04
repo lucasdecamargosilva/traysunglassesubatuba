@@ -225,11 +225,13 @@
 
         :root {
             --c-bg: #ffffff;
-            --c-surface: #f5f5f5;
-            --c-ink: #111111;
-            --c-muted: #999;
-            --c-line: #dedede;
-            --c-accent: #111111;
+            --c-surface: #fff7f7;
+            --c-ink: #171717;
+            --c-muted: #7f7475;
+            --c-line: #f1dadd;
+            --c-primary: #feb3b6;
+            --c-primary-hover: #f59fa4;
+            --c-accent: #feb3b6;
             --c-danger: #cc3333;
             --font-display: 'Montserrat', sans-serif;
             --font-body: 'Montserrat', sans-serif;
@@ -300,7 +302,7 @@
         @keyframes q-modal-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         #q-modal-ia {
             display: none; position: fixed; inset: 0; z-index: 999999;
-            background: rgba(230,248,252,0.97);
+            background: rgba(250,226,228,0.96);
             font-family: var(--font-body);
             overflow-y: auto; box-sizing: border-box;
         }
@@ -660,20 +662,36 @@
             flex-shrink: 0; border-top: 1px solid var(--c-line); text-decoration: none;
         }
         .q-powered-footer span { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c-muted); }
-        /* ── Sunglasses Ubatuba: preto + branco ── */
-        :root { --c-surface: #f5f5f5; --c-line: #dedede; }
-        .q-btn-black { background: #111111 !important; }
-        .q-btn-black:hover:not(:disabled) { background: #333333 !important; }
-        .q-btn-black:disabled { background: #bdbdbd !important; }
-        .q-face-corner { border-color: #111111 !important; }
-        .q-terms-row a { color: #111111 !important; }
-        .q-upload-btn:hover { border-color: #111111; color: #111111; }
-        .q-btn-outline:hover { border-color: #111111; color: #111111; }
-        .q-input:focus { border-color: #111111 !important; }
-        .q-loading-bar > div { background: #111111 !important; }
-        .q-tip-box { background: #f5f5f5 !important; border-left-color: #111111 !important; color: #333333 !important; }
-        .q-tip-box i { color: #111111 !important; }
-        #q-related-products h4 { color: #111111 !important; }
+        /* ── Sunglasses Ubatuba: rosa da marca + branco ── */
+        :root {
+            --c-surface: #fff7f7;
+            --c-line: #f1dadd;
+            --c-primary: #feb3b6;
+            --c-primary-hover: #f59fa4;
+        }
+        #q-header-provador { background: #fffafa; }
+        .q-btn-inline-provador {
+            background: #feb3b6; color: #ffffff;
+            border-color: #feb3b6;
+        }
+        .q-btn-inline-provador:hover { background: #f59fa4; border-color: #f59fa4; opacity: 1; }
+        .q-btn-black { background: #feb3b6 !important; color: #ffffff !important; }
+        .q-btn-black:hover:not(:disabled) { background: #f59fa4 !important; opacity: 1; }
+        .q-btn-black:disabled { background: #ead5d6 !important; color: #ffffff !important; }
+        .q-btn-buy-now { background: #feb3b6 !important; border-color: #feb3b6 !important; }
+        .q-btn-buy-now:hover { background: #f59fa4 !important; border-color: #f59fa4 !important; }
+        .q-face-corner { border-color: #feb3b6 !important; }
+        .q-terms-row input { accent-color: #feb3b6; }
+        .q-terms-row a { color: #a9545a !important; }
+        .q-upload-btn:hover { border-color: #feb3b6; color: #a9545a; background: #fff7f7; }
+        .q-btn-outline:hover { border-color: #feb3b6; color: #a9545a; background: #fff7f7; }
+        .q-input:focus { border-color: #feb3b6 !important; box-shadow: 0 0 0 3px rgba(254,179,182,0.2); }
+        .q-loading-bar > div { background: #feb3b6 !important; }
+        .q-tip-box { background: #fff7f7 !important; border-left-color: #feb3b6 !important; color: #5f5556 !important; }
+        .q-tip-box i { color: #d87980 !important; }
+        .q-seal > i { color: #d87980; }
+        .q-powered-footer { background: #fff7f7; }
+        #q-related-products h4 { color: #a9545a !important; }
         .q-quantic-logo { height: 20px; opacity: 0.7; }
     `;
 
@@ -1756,15 +1774,11 @@
         var path = window.location.pathname;
         // Não exibe o provador em páginas de lentes
         if (path.toLowerCase().includes('/lentes')) return;
+        // Na Tray, classes como .botao-comprar também existem nas vitrines da home
+        // e das categorias. O h1.product-name é o marcador estável da página de
+        // detalhe deste tema e evita inicializar o modal fora de um produto.
         var isProduct =
             window.__MC_FORCE_INIT__ === true ||
-            path.includes('/produto/') || path.includes('/p/') || path.includes('/products/') ||
-            document.getElementById('product-container') !== null ||
-            document.getElementById('form_comprar') !== null ||
-            document.querySelector('.botao-comprar') !== null ||
-            document.querySelector('.product-colum-right') !== null ||
-            document.querySelector('.page-product') !== null ||
-            document.querySelector('.frame_product_action_button') !== null ||
             document.querySelector('h1.product-name') !== null;
 
         if (isProduct) {
@@ -1773,9 +1787,7 @@
             var tries = 0;
             var iv = setInterval(function() {
                 tries++;
-                if (document.getElementById('form_comprar') !== null ||
-                    document.querySelector('.frame_product_action_button') !== null ||
-                    document.querySelector('h1.product-name') !== null) {
+                if (document.querySelector('h1.product-name') !== null) {
                     clearInterval(iv);
                     init();
                 } else if (tries >= 10) {
