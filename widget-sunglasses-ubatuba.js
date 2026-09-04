@@ -160,6 +160,15 @@
             var logoEl = document.querySelector('#q-header-provador img');
             if (logoEl) logoEl.src = d.custom_logo;
         }
+
+        // Na vitrine da Sunglasses Ubatuba, o provador deve funcionar como uma
+        // ação secundária: sem preenchimento e com contorno fino da marca.
+        if (buyBtn) {
+            buyBtn.style.setProperty('background', 'transparent', 'important');
+            buyBtn.style.setProperty('background-color', 'transparent', 'important');
+            buyBtn.style.setProperty('color', '#a9545a', 'important');
+            buyBtn.style.setProperty('border', '1px solid #feb3b6', 'important');
+        }
     }
 
     function fetchDesignFromAPI() {
@@ -671,10 +680,10 @@
         }
         #q-header-provador { background: #fffafa; }
         .q-btn-inline-provador {
-            background: #feb3b6; color: #ffffff;
-            border-color: #feb3b6;
+            background: transparent; color: #a9545a;
+            border: 1px solid #feb3b6;
         }
-        .q-btn-inline-provador:hover { background: #f59fa4; border-color: #f59fa4; opacity: 1; }
+        .q-btn-inline-provador:hover { background: transparent; color: #d87980; border-color: #f59fa4; opacity: 1; }
         .q-btn-black { background: #feb3b6 !important; color: #ffffff !important; }
         .q-btn-black:hover:not(:disabled) { background: #f59fa4 !important; opacity: 1; }
         .q-btn-black:disabled { background: #ead5d6 !important; color: #ffffff !important; }
