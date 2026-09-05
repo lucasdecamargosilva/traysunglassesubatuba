@@ -895,7 +895,7 @@
         stepPix.appendChild(pixH2);
         var pixSub = document.createElement('p');
         pixSub.className = 'q-pix-subtitle';
-        var pixSubLine1 = document.createTextNode('Limite de 3 provas atingido.');
+        var pixSubLine1 = document.createTextNode('Limite de 5 provas atingido.');
         pixSub.appendChild(pixSubLine1);
         pixSub.appendChild(document.createElement('br'));
         pixSub.appendChild(document.createTextNode('Pague R$1 via PIX para mais uma:'));
