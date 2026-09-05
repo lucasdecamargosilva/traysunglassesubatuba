@@ -1383,24 +1383,34 @@
                 openModal();
             });
 
-            // Algumas lojas Tray usam um bloco adicional "Comprar com Grau".
-            // Os .btn-pay-wp são os botões do CARROSSEL de variações do kit — NÃO usar.
-            var wpProd = [].slice.call(document.querySelectorAll('.wp-prod')).filter(function (b) { return b.offsetParent !== null; })[0];
-            var grauBlock = wpProd ? (wpProd.closest('.content-wp-prod') || wpProd) : null;
-            if (grauBlock && grauBlock.parentNode) {
-                grauBlock.parentNode.insertBefore(inlineBtn, grauBlock);
+            // O botão do provador deve ficar logo ABAIXO do botão "Comprar".
+            function insertAfter(node, ref) { ref.parentNode.insertBefore(node, ref.nextSibling); }
+
+            // 1º: âncora no próprio botão nativo de compra — insere logo depois dele.
+            var buyBtnEl = document.querySelector('#button-buy, #botao-comprar, .botao-comprar, button[name="comprar"], button[name="buy"], input[name="buy"], .buy-button, .product-buy-button');
+            if (buyBtnEl && buyBtnEl.parentNode) {
+                insertAfter(inlineBtn, buyBtnEl);
             } else {
-                var buySels = [
-                    '.frame_product_action_button', '[data-buy-action-button]', '.buy_action_button',
-                    '.product-buy-button', '.wrapper-btn-buy', '.button-buy', '.buy-button', '#buy-button',
-                    '.botao-comprar', '#botao-comprar', '.product-buy', '.btn-buy',
-                    'button[name="buy"]', 'input[name="buy"]',
-                    '.product-colum-right .box-buy', '.box-buy',
-                    '.product-action', '.product-actions', '.add-to-cart', '#addToCart'
-                ];
-                for (var j = 0; j < buySels.length; j++) {
-                    var bel = document.querySelector(buySels[j]);
-                    if (bel) { bel.parentNode.insertBefore(inlineBtn, bel); break; }
+                // 2º: bloco "Comprar com Grau" (fica abaixo do comprar): insere antes dele
+                // para o provador ficar entre o "Comprar" e o bloco de grau.
+                // Os .btn-pay-wp são os botões do CARROSSEL de variações do kit — NÃO usar.
+                var wpProd = [].slice.call(document.querySelectorAll('.wp-prod')).filter(function (b) { return b.offsetParent !== null; })[0];
+                var grauBlock = wpProd ? (wpProd.closest('.content-wp-prod') || wpProd) : null;
+                if (grauBlock && grauBlock.parentNode) {
+                    grauBlock.parentNode.insertBefore(inlineBtn, grauBlock);
+                } else {
+                    // 3º: contêineres de ação de compra — insere depois do contêiner.
+                    var buySels = [
+                        '.frame_product_action_button', '[data-buy-action-button]', '.buy_action_button',
+                        '.wrapper-btn-buy', '.button-buy', '#buy-button',
+                        '.product-buy', '.btn-buy',
+                        '.product-colum-right .box-buy', '.box-buy',
+                        '.product-action', '.product-actions', '.add-to-cart', '#addToCart'
+                    ];
+                    for (var j = 0; j < buySels.length; j++) {
+                        var bel = document.querySelector(buySels[j]);
+                        if (bel) { insertAfter(inlineBtn, bel); break; }
+                    }
                 }
             }
 
