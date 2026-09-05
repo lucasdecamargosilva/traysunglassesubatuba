@@ -404,6 +404,13 @@
             font-weight: 500; margin-top: 6px; letter-spacing: 0.3px;
         }
 
+        /* ── Contador de provas restantes ── */
+        .q-provas-msg {
+            font-size: 12px; font-weight: 600; letter-spacing: .3px;
+            color: var(--c-ink); text-align: center; margin: -16px 0 20px; min-height: 15px;
+        }
+        .q-provas-msg:empty { margin: 0; min-height: 0; }
+
         /* ── Section label ── */
         .q-section-label {
             font-family: var(--font-display);
@@ -779,6 +786,12 @@
         phoneErr.textContent = 'Insira um número válido';
         phoneWrap.appendChild(phoneErr);
         stepUpload.appendChild(phoneWrap);
+
+        // Contador "provas restantes hoje"
+        var provasMsg = document.createElement('div');
+        provasMsg.id = 'q-provas-restantes';
+        provasMsg.className = 'q-provas-msg';
+        stepUpload.appendChild(provasMsg);
 
         // Section label
         var sectionLbl = document.createElement('p');
@@ -1389,8 +1402,31 @@
         function plSid() { try { var s = localStorage.getItem('pl_sid'); if (!s) { s = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem('pl_sid', s); } return s; } catch (e) { return 'nostore'; } }
         function plTrackOpen() { try { fetch(WEBHOOK_OPEN_PL, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: plSid(), origin: location.origin, botao: window.__plBtnSrc || null, produto: (document.querySelector('h1.product-name, h1.product__title, .product-single__title, h1') || {}).innerText || document.title || '' }) }).catch(function () {}); } catch (e) {} }
         function plTrackProved(rawPhone) { try { var d = (rawPhone || '').replace(/\D/g, ''); if (d.length > 11 && d.slice(0, 2) === '55') d = d.slice(2); fetch(WEBHOOK_OPEN_PL, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: plSid(), proved: true, telefone_cliente: d || null }) }).catch(function () {}); } catch (e) {} }
+        // ── Contador "provas restantes hoje" (debounced) ──
+        var _provasDebounce;
+        async function _checkProvasRestantes() {
+            var el = document.getElementById('q-provas-restantes');
+            if (!el) return;
+            var nums = (phoneInput.value || '').replace(/\D/g, '');
+            // Telefone vazio/incompleto → manda '0' pra pegar só o ip_count.
+            var phone = isValidBRPhone(nums) ? '55' + nums : '0';
+            try {
+                var r = await fetch(WEBHOOK_CHECK_LIMIT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: phone }) });
+                var d = await r.json();
+                var limite = d.limit || 5;
+                var usadas = Math.max(d.phone_count || 0, d.ip_count || 0, d.count || 0);
+                var restantes = Math.max(0, limite - usadas);
+                el.textContent = restantes > 0 ? (restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje')) : '';
+            } catch (_) { el.textContent = ''; }
+        }
+        phoneInput.addEventListener('input', function () {
+            clearTimeout(_provasDebounce);
+            _provasDebounce = setTimeout(_checkProvasRestantes, 600);
+        });
+
         function openModal()  {
-            plTrackOpen(); modal.style.display = 'flex'; lockBodyScroll(); }
+            plTrackOpen(); modal.style.display = 'flex'; lockBodyScroll();
+            try { _checkProvasRestantes(); } catch (e) {} }
         function closeModal() { modal.style.display = 'none'; unlockBodyScroll(); 
             // --- volta pra tela inicial ao fechar (pos-prova) + limpa input p/ 2a foto enviar ---
             try {
