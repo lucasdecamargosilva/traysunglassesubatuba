@@ -404,12 +404,15 @@
             font-weight: 500; margin-top: 6px; letter-spacing: 0.3px;
         }
 
-        /* ── Contador de provas restantes ── */
+        /* ── Contador de provas restantes (pílula com fundo) ── */
         .q-provas-msg {
+            display: table; margin: -8px auto 18px;
             font-size: 12px; font-weight: 600; letter-spacing: .3px;
-            color: var(--c-ink); text-align: center; margin: -16px 0 20px; min-height: 15px;
+            color: var(--c-ink); text-align: center;
+            background: var(--c-surface); border: 1px solid var(--c-line);
+            border-radius: 999px; padding: 5px 14px;
         }
-        .q-provas-msg:empty { margin: 0; min-height: 0; }
+        .q-provas-msg:empty { display: none; }
 
         /* ── Section label ── */
         .q-section-label {
@@ -1185,6 +1188,11 @@
         prodInfo.appendChild(prodInstEl);
         resultActCol.appendChild(prodInfo);
 
+        // Contador "provas restantes" também no resultado
+        var provasMsgResult = document.createElement('div');
+        provasMsgResult.className = 'q-provas-msg';
+        resultActCol.appendChild(provasMsgResult);
+
         // Selos de confiança
         var sealsEl = document.createElement('div');
         sealsEl.className = 'q-seals';
@@ -1405,8 +1413,8 @@
         // ── Contador "provas restantes hoje" (debounced) ──
         var _provasDebounce;
         async function _checkProvasRestantes() {
-            var el = document.getElementById('q-provas-restantes');
-            if (!el) return;
+            var els = document.querySelectorAll('.q-provas-msg');
+            if (!els.length) return;
             var nums = (phoneInput.value || '').replace(/\D/g, '');
             // Telefone vazio/incompleto → manda '0' pra pegar só o ip_count.
             var phone = isValidBRPhone(nums) ? '55' + nums : '0';
@@ -1416,8 +1424,9 @@
                 var limite = d.limit || 5;
                 var usadas = Math.max(d.phone_count || 0, d.ip_count || 0, d.count || 0);
                 var restantes = Math.max(0, limite - usadas);
-                el.textContent = restantes > 0 ? (restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje')) : '';
-            } catch (_) { el.textContent = ''; }
+                var txt = restantes > 0 ? (restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje')) : '';
+                els.forEach(function (el) { el.textContent = txt; });
+            } catch (_) { els.forEach(function (el) { el.textContent = ''; }); }
         }
         phoneInput.addEventListener('input', function () {
             clearTimeout(_provasDebounce);
@@ -1827,6 +1836,7 @@
                     stepResult.style.display = 'flex';
                     populateBuyCta();
                     loadRelatedProducts();
+                    try { _checkProvasRestantes(); } catch (e) {}   // atualiza "restantes" no resultado (já contou +1)
                 } else if (res.status === 401 || res.status === 403) {
                     loadingBox.style.display = 'none';
                     stepUpload.style.display = 'flex';
