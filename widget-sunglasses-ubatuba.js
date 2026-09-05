@@ -5,7 +5,7 @@
     // false o script continua hospedado (a tag <script> da loja não quebra),
     // mas nada é renderizado: sem selo/SEO badge, sem botão e sem modal.
     // Para religar o provador, basta voltar este valor para true.
-    var WIDGET_ENABLED = false;
+    var WIDGET_ENABLED = true;
     if (!WIDGET_ENABLED) return;
 
     function toJpeg(file){return new Promise(function(res){try{var img=new Image();var u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;if(!w||!h){res(file);return;}var sc=Math.min(1,1280/Math.max(w,h));var cw=Math.round(w*sc),ch=Math.round(h*sc);var c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);c.toBlob(function(b){res(b||file);},'image/jpeg',0.92);};img.onerror=function(){URL.revokeObjectURL(u);res(file);};img.src=u;}catch(e){res(file);}});}

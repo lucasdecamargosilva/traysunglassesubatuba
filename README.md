@@ -2,10 +2,9 @@
 
 Widget do Provou Levou preparado para a loja Tray `927097`.
 
-> ⚠️ **Provador fora do ar.** O widget está desativado por um kill switch
-> (`WIDGET_ENABLED = false`) no topo de `widget-sunglasses-ubatuba.js`.
-> O arquivo continua hospedado, então a tag `<script>` da loja não quebra,
-> mas nada é renderizado. Para religar, volte `WIDGET_ENABLED` para `true`.
+> ✅ **Provador no ar.** O widget está ativo (`WIDGET_ENABLED = true` no topo
+> de `widget-sunglasses-ubatuba.js`). Para tirar do ar sem quebrar a tag
+> `<script>` da loja, basta mudar a flag para `false`.
 
 ## Arquivo de instalação
 
