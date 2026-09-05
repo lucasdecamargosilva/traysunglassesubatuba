@@ -422,6 +422,18 @@
         }
         .q-tip-box i { color: var(--c-ink); font-size: 15px; flex-shrink: 0; }
 
+        /* ── Provas restantes ── */
+        .q-provas-restantes {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            background: var(--c-surface); border: 1px solid var(--c-line);
+            border-radius: 999px; padding: 8px 16px; margin: 0 auto 16px;
+            font-family: var(--font-body); font-size: 12.5px; font-weight: 600;
+            color: var(--c-ink); letter-spacing: .2px; width: fit-content; max-width: 100%;
+        }
+        .q-provas-restantes i { color: var(--c-primary-hover, #f59fa4); font-size: 16px; flex-shrink: 0; }
+        .q-provas-restantes b { color: var(--c-primary-hover, #f59fa4); font-weight: 700; }
+        .q-provas-restantes.is-last b { color: #ef4444; }
+
         /* ── Face frame ── */
         @keyframes q-frame-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
         .q-face-frame {
@@ -877,6 +889,14 @@
         termsLabel.appendChild(termsSpan);
         stepUpload.appendChild(termsLabel);
 
+        // Provas restantes (grátis) — populado por checkLimit(); começa oculto até
+        // termos uma contagem real vinda do backend.
+        var provasInfo = document.createElement('div');
+        provasInfo.className = 'q-provas-restantes';
+        provasInfo.id = 'q-provas-restantes';
+        provasInfo.style.display = 'none';
+        stepUpload.appendChild(provasInfo);
+
         var genBtn = document.createElement('button');
         genBtn.className = 'q-btn-black';
         genBtn.id = 'q-btn-generate';
@@ -1171,6 +1191,13 @@
         prodInfo.appendChild(prodPriceEl);
         prodInfo.appendChild(prodInstEl);
         resultActCol.appendChild(prodInfo);
+
+        // Provas restantes na tela de resultado — atualizado após cada prova.
+        var provasInfoRes = document.createElement('div');
+        provasInfoRes.className = 'q-provas-restantes';
+        provasInfoRes.id = 'q-provas-restantes-res';
+        provasInfoRes.style.cssText = 'display:none;margin-top:0;margin-bottom:14px;';
+        resultActCol.appendChild(provasInfoRes);
 
         // Selos de confiança
         var sealsEl = document.createElement('div');
@@ -1573,7 +1600,70 @@
             var x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
             checkFields();
+            scheduleLimitPeek();
         });
+
+        // ── Provas restantes ────────────────────────────────────────────────
+        // O backend (check-limit) devolve phone_count, ip_count e limit; as provas
+        // restantes = limit - max(phone_count, ip_count). Exibimos essa contagem
+        // pro cliente na tela de upload e na de resultado.
+        var provasLimit = 3;        // sobrescrito pelo `limit` do backend
+        var provasUsadas = null;    // null = ainda não sabemos (mantém o badge oculto)
+        var _lastPeekPhone = null;
+        var _peekTimer = null;
+
+        function _provasRestantes() {
+            if (provasUsadas === null) return null;
+            var r = provasLimit - provasUsadas;
+            return r < 0 ? 0 : r;
+        }
+        function renderProvasBadges() {
+            var rem = _provasRestantes();
+            ['q-provas-restantes', 'q-provas-restantes-res'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                if (rem === null) { el.style.display = 'none'; return; }
+                if (rem <= 0) {
+                    el.classList.add('is-last');
+                    el.innerHTML = '<i class="ph-fill ph-star"></i><span>Você usou suas <b>' + provasLimit + '</b> provas grátis</span>';
+                } else {
+                    el.classList.toggle('is-last', rem === 1);
+                    var txt = rem === 1 ? 'prova grátis restante' : 'provas grátis restantes';
+                    el.innerHTML = '<i class="ph-fill ph-sparkle"></i><span><b>' + rem + '</b> ' + txt + '</span>';
+                }
+                el.style.display = 'flex';
+            });
+        }
+        function applyLimitData(data) {
+            if (!data || typeof data !== 'object') return;
+            if (typeof data.limit === 'number' && data.limit > 0) provasLimit = data.limit;
+            var pc = typeof data.phone_count === 'number' ? data.phone_count : 0;
+            var ic = typeof data.ip_count === 'number' ? data.ip_count : 0;
+            provasUsadas = Math.max(pc, ic);
+            if (data.limited) provasUsadas = Math.max(provasUsadas, provasLimit);
+            renderProvasBadges();
+        }
+        function checkLimit(phone) {
+            return fetch(WEBHOOK_CHECK_LIMIT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: phone })
+            }).then(function(r) { return r.json(); });
+        }
+        // Assim que o cliente digita um WhatsApp válido, consultamos o limite em
+        // background (debounce) só pra já mostrar as provas restantes — sem travar
+        // a UI e sem repetir a consulta pro mesmo número.
+        function scheduleLimitPeek() {
+            var nums = phoneInput.value.replace(/\D/g, '');
+            if (!isValidBRPhone(nums)) return;
+            var phone = '55' + nums;
+            if (phone === _lastPeekPhone) return;
+            if (_peekTimer) clearTimeout(_peekTimer);
+            _peekTimer = setTimeout(function() {
+                _lastPeekPhone = phone;
+                checkLimit(phone).then(applyLimitData).catch(function() {});
+            }, 700);
+        }
 
         var userPhoto = null;
         var pixPaymentId = null;
@@ -1789,6 +1879,8 @@
                     card.classList.add('is-result');
                     plTrackProved((document.getElementById('q-phone') || document.getElementById('mc-phone') || document.querySelector('input[type=tel]') || {}).value);
                     stepResult.style.display = 'flex';
+                    // Consumimos uma prova: atualiza o contador de provas restantes.
+                    if (provasUsadas !== null) { provasUsadas += 1; renderProvasBadges(); }
                     populateBuyCta();
                     loadRelatedProducts();
                 } else if (res.status === 401 || res.status === 403) {
@@ -1821,12 +1913,9 @@
  startLoadingProgress(); } catch (_) {}
 
             try {
-                var resp = await fetch(WEBHOOK_CHECK_LIMIT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: phone })
-                });
-                var data = await resp.json();
+                var data = await checkLimit(phone);
+                applyLimitData(data);            // atualiza o badge de provas restantes
+                _lastPeekPhone = phone;
                 if (data.limited) {
                     try { loadingBox.style.display = 'none'; } catch (_) {}
                     genBtn.disabled = false;
