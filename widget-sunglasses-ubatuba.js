@@ -1404,6 +1404,21 @@
                 }
             }
 
+            // Espelha o raio de borda do botão "Comprar" nativo da loja para que o
+            // botão do provador tenha exatamente o mesmo formato de bordas do tema.
+            (function matchBuyButtonRadius() {
+                function apply() {
+                    var buyBtn = document.querySelector('#button-buy, .botao-comprar, .buy-button, .product-buy-button, [name="comprar"]');
+                    if (!buyBtn) return;
+                    var r = window.getComputedStyle(buyBtn).borderRadius;
+                    if (r && r !== '0px') inlineBtn.style.setProperty('border-radius', r, 'important');
+                }
+                // Reaplica algumas vezes para vencer o fetch de design assíncrono,
+                // que reforça a borda do botão pouco depois da inserção.
+                apply();
+                [400, 900, 1800, 3200].forEach(function (t) { setTimeout(apply, t); });
+            })();
+
             if (BUTTON_MODE === 'buy') {
                 openBtn.style.display = 'none';
                 document.body.appendChild(openBtn);
