@@ -66,6 +66,15 @@
     // ─── 0. CONFIG — Sunglasses Ubatuba (Tray store 927097) ───────────────────
     const apiKey = '708bcc23873bb1bf0bf05b7daac3219e7318b9c7918768e2f15272e4853239dc';
     window.PROVOU_LEVOU_API_KEY = apiKey;
+    // Fotos de referência fixas por produto (a loja escolheu quais o gerador deve usar).
+    var PL_REF_FIXAS = [
+        { nome: /BALGRIFF[\s\S]*DOURAD[\s\S]*ZR6027|ZR6027[\s\S]*DOURAD/i, url: /balgriff[^/]*dourad|dourad[^/]*zr6027/i, fotos: [
+            'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_1_20260121113604_b9aad56282a9.jpeg',
+            'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_1_20251014155800_643b9a7412e4.jpeg',
+            'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_13_20260923122935_35d442f8cc4d.jpg',
+            'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_12_20260923122935_e699fb7256eb.jpg'
+        ] }
+    ];
 
     let BUTTON_MODE = 'both';   // selo na foto + botão inline acima do "Comprar com Grau"
     const STORE_ID = '927097';
@@ -1821,8 +1830,16 @@
                     });
                 } catch (_) {}
                 allProdImgs = allProdImgs.slice(0, 4);
-                // Prioriza uma foto com rosto (modelo usando o óculos) como referência principal.
-                allProdImgs = await reorderFacePhotoFirst(allProdImgs);
+                // Produtos com fotos de referência FIXAS (pedido da loja): manda sempre estas, nesta ordem
+                // (a 1ª é a referência principal), no lugar das fotos da galeria.
+                var _refFixa = PL_REF_FIXAS.find(function (r) { return r.nome.test(prodName || '') || r.url.test(location.pathname); });
+                if (_refFixa) {
+                    allProdImgs = _refFixa.fotos.slice(0, 4);
+                    console.log('[PL Sunglasses Ubatuba] fotos de referência fixas do produto');
+                } else {
+                    // Prioriza uma foto com rosto (modelo usando o óculos) como referência principal.
+                    allProdImgs = await reorderFacePhotoFirst(allProdImgs);
+                }
                 console.log('[PL Sunglasses Ubatuba] Enviando', allProdImgs.length, 'fotos do produto');
                 for (var _pi = 0; _pi < allProdImgs.length; _pi++) {
                     try {
