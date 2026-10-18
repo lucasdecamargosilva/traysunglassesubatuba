@@ -68,7 +68,9 @@
     window.PROVOU_LEVOU_API_KEY = apiKey;
     // Fotos de referência fixas por produto (a loja escolheu quais o gerador deve usar).
     var PL_REF_FIXAS = [
-        { nome: /BALGRIFF[\s\S]*DOURAD[\s\S]*ZR6027|ZR6027[\s\S]*DOURAD/i, url: /balgriff[^/]*dourad|dourad[^/]*zr6027/i, fotos: [
+        // 17/10/2026: a regra antiga casava QUALQUER "Balgriff ... Dourad" (LQ50056, 85019, 9001...) e mandava as fotos da ZR6027
+        // para todos — a prova saía com a mesma armação. Agora exige ZR6027 E dourad juntos (nome ou endereço).
+        { nome: /^(?=[\s\S]*ZR6027)(?=[\s\S]*DOURAD)/i, url: /^(?=.*zr6027)(?=.*dourad)/i, fotos: [
             'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_1_20260121113604_b9aad56282a9.jpeg',
             'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_1_20251014155800_643b9a7412e4.jpeg',
             'https://images.tcdn.com.br/img/img_prod/927097/armao_balgriff_2_em_1_dourado_zr6027_13_20260923122935_35d442f8cc4d.jpg',
