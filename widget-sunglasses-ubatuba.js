@@ -1,3 +1,5 @@
+/* 23/10/2026: a Ubatuba migrou para a Nuvemshop (widget novo em lucasdecamargosilva/nuvemshopubatuba). Este widget da Tray nao roda mais la. */
+if (window.LS || document.querySelector('script[src*="nuvemshopubatuba"]') || location.hostname.indexOf('sunglassesubatuba') !== -1) { /* desligado */ } else {
 /* Provador Virtual — Sunglasses Ubatuba (Tray 927097). */
 (function () {
     // ─── KILL SWITCH ─────────────────────────────────────────────────────────
@@ -2212,3 +2214,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
 })();
+
+}
